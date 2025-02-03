@@ -1,0 +1,10 @@
+\contentsline {section}{\numberline {1}Problem definition}{1}
+\contentsline {section}{\numberline {2}A discussion on smoothers or relaxation schemes and multigrid method}{1}
+\contentsline {section}{\numberline {3}(b) Flow-chart of the solver}{4}
+\contentsline {section}{\numberline {4}Results and discussion}{5}
+\contentsline {subsubsection}{(c) Solutions on different grid}{5}
+\contentsline {subsection}{\numberline {4.1}(d) Sanity check}{6}
+\contentsline {subsubsection}{(e) (i) Convergence with number of coarse grid levels}{8}
+\contentsline {subsubsection}{(e) (ii) CPU time with and without multigrid}{8}
+\contentsline {section}{\numberline {5}Conclusion}{10}
+\contentsline {chapter}{Appendices}{11}

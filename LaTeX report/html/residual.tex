@@ -1,0 +1,38 @@
+
+% This LaTeX was auto-generated from MATLAB code.
+% To make changes, update the MATLAB code and republish this document.
+
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{color}
+
+\sloppy
+\definecolor{lightgray}{gray}{0.5}
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+    
+    \begin{verbatim}
+function [eps]=residual(uout,RHS,a,b,c,Nx,Ny)
+eps(1:Ny,1:Nx)=0;
+%Compute residual \epsilon=Lu-R
+for i=2:Nx-1
+    for j=2:Ny-1
+        eps(j,i)=a*(uout(j,i-1)+uout(j,i+1))+c*(uout(j-1,i)+uout(j+1,i))+b*uout(j,i)-RHS(j,i);
+    end
+end
+
+end
+\end{verbatim}
+
+        \color{lightgray} \begin{verbatim}Not enough input arguments.
+
+Error in residual (line 2)
+eps(1:Ny,1:Nx)=0;
+\end{verbatim} \color{black}
+    
+
+
+\end{document}
+    

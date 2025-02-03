@@ -1,0 +1,482 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>main</title><meta name="generator" content="MATLAB 9.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-12-13"><meta name="DC.source" content="main.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Multigrid parameters</a></li><li><a href="#3">Grid definition for each level</a></li><li><a href="#4">Initialise arrays on each level</a></li><li><a href="#5">Initial condition (random noise+ boundary condition)</a></li><li><a href="#6">Calculate co-efficients</a></li><li><a href="#7">Solving Lu=R using Non-MG</a></li><li><a href="#8">Solving Lu=R using MG (V-cycle)</a></li><li><a href="#9">Solving Lu=R using MG (W-cycle)</a></li><li><a href="#10">Analysis</a></li></ul></div><pre class="codeinput"><span class="comment">%%**************MULTIGIRD PROJECT******************</span>
+<span class="comment">%%*****SUBMITTED BY GHANESH NARASIMHAN*************</span>
+<span class="comment">%%*******NUMERICAL METHODS (FALL 2018)*************</span>
+
+clear
+</pre><h2 id="2">Multigrid parameters</h2><pre class="codeinput">Nlvlmax=5;            <span class="comment">%Number of multigrid levels</span>
+Ncycle=50;           <span class="comment">%Number of MG cycles</span>
+<span class="comment">%tot_iter=2500;       %total iterations=Ncycle*maxiter*Nlvlmax;</span>
+maxiter=5;<span class="comment">%tot_iter/(Nlvlmax*Ncycle);%Maximum iterations in iterative solver</span>
+
+omg=1.00;            <span class="comment">%SOR parameter</span>
+Vcycle=1;            <span class="comment">%Flag for V-Cycle</span>
+Wcycle=0;            <span class="comment">%Flag for W-Cycle</span>
+
+
+<span class="comment">%Type of smoother</span>
+itype=3;
+<span class="comment">%</span>
+<span class="comment">%itype=1 Point Gauss-Seidel red black + SOR + MG</span>
+<span class="comment">%itype=2 Point Gauss-Seidel normal    + SOR + MG</span>
+<span class="comment">%itype=3 Line  Gauss-Seidel (ADI)     + SOR + MG</span>
+<span class="comment">%itype=4 Line  Gauss-Seidel (ADI)     + SOR + Non-MG</span>
+<span class="comment">%itype=5 Point Gauss-Seidel           + SOR + Non-MG</span>
+</pre><h2 id="3">Grid definition for each level</h2><pre class="codeinput">Lx=2*pi;Ly=2*pi;
+Nx=257;Ny=257;
+nx(1)=Nx;
+ny(1)=Ny;
+
+<span class="comment">%Number of grid points at other levels</span>
+<span class="keyword">for</span> i=2:Nlvlmax
+    ny(i)=((ny(1)-1)/2^(i-1))+1;
+    nx(i)=((nx(1)-1)/2^(i-1))+1;
+<span class="keyword">end</span>
+</pre><h2 id="4">Initialise arrays on each level</h2><pre class="codeinput">error(1:Ncycle)=0;
+<span class="keyword">for</span> i=1:Nlvlmax
+    uin{i}(1:ny(i),1:nx(i))=0;
+    uout{i}(1:ny(i),1:nx(i))=0;
+    uoutnew{i}(1:ny(i),1:nx(i))=0;
+    eps{i}(1:ny(i),1:nx(i))=0;
+    epsnew{i}(1:ny(i),1:nx(i))=0;
+    RHS{i}(1:ny(i),1:nx(i))=0;
+<span class="keyword">end</span>
+</pre><h2 id="5">Initial condition (random noise+ boundary condition)</h2><pre class="codeinput"><span class="keyword">for</span> n=1:Nlvlmax
+  dx=Lx/(nx(n)-1);dy=Ly/(ny(n)-1);
+  x=0:dx:Lx;
+  y=0:dy:Ly;
+  <span class="keyword">if</span> (n==1)
+   <span class="comment">%uin{n}= -1 + (1+1)*rand(ny(1),nx(1));</span>
+   u=load(<span class="string">'init_cond.mat'</span>);
+   uin{n}(1:ny(n),1:nx(n))=u.u(1:ny(n),1:nx(n));
+   uin{n}(1:ny(n),1)=sin(4*y);
+   uin{n}(1:ny(n),nx(n))=0;
+   uin{n}(1,1:nx(n))=sin(4*x);
+   uin{n}(ny(n),1:nx(n))=0;
+  <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><h2 id="6">Calculate co-efficients</h2><pre class="codeinput">a(1:Nlvlmax)=0;b(1:Nlvlmax)=0;c(1:Nlvlmax)=0;
+<span class="keyword">for</span> n=1:Nlvlmax
+    A{n}=0;B{n}=0;invA{n}=0;invB{n}=0;
+    [invA{n},invB{n},A{n},B{n},a(n),b(n),c(n)]=coeff(n,Nx,Ny,Lx,Ly);
+<span class="keyword">end</span>
+</pre><h2 id="7">Solving Lu=R using Non-MG</h2><pre class="codeinput"><span class="keyword">if</span> (itype&gt;=4)
+  n=1;tol=1e-5;counternMG=0;
+  [uout{n},counternMG,tnonMG,errornMG]=NonMG(uin{n},RHS{n},invA{n},invB{n}<span class="keyword">...</span>
+                                             ,a(n),b(n),c(n),Nx,Ny,itype,omg,tol);
+  semilogy(errornMG)
+<span class="keyword">end</span>
+</pre><h2 id="8">Solving Lu=R using MG (V-cycle)</h2><pre class="codeinput"><span class="keyword">if</span> (Vcycle==1 &amp;&amp; itype&lt;4)
+   tsV=cputime;
+   <span class="keyword">for</span> Ncyl=1:Ncycle
+       Ncyl
+      [uout]=fine_to_coarse(uin,RHS,maxiter,invA,invB,A,B,a,b,c,nx,ny,itype,omg,Nlvlmax,1,uout,eps,epsnew);
+      [uout]=coarse_to_fine(Nlvlmax,uout,uoutnew,2);
+      uin{1}=uout{1};
+      <span class="comment">%residue for testing convergence</span>
+      error(Ncyl)=norm(residual(uout{1},RHS{1},a(1),b(1),c(1),nx(1),ny(1)));
+      <span class="keyword">if</span> (error(Ncyl)&lt;1e-5)
+          Ncyl
+          teV=cputime-tsV;
+          <span class="keyword">break</span>
+      <span class="keyword">end</span>
+   <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">
+Ncyl =
+
+     1
+
+na=1 
+na=2 
+na=3 
+na=4 
+na=5 
+nb=4 
+nb=3 
+nb=2 
+nb=1 
+
+Ncyl =
+
+     2
+
+na=1 
+na=2 
+na=3 
+na=4 
+na=5 
+nb=4 
+nb=3 
+nb=2 
+nb=1 
+
+Ncyl =
+
+     3
+
+na=1 
+na=2 
+na=3 
+na=4 
+na=5 
+nb=4 
+nb=3 
+nb=2 
+nb=1 
+
+Ncyl =
+
+     4
+
+na=1 
+na=2 
+na=3 
+na=4 
+na=5 
+nb=4 
+nb=3 
+nb=2 
+nb=1 
+
+Ncyl =
+
+     5
+
+na=1 
+na=2 
+na=3 
+na=4 
+na=5 
+nb=4 
+nb=3 
+nb=2 
+nb=1 
+
+Ncyl =
+
+     6
+
+na=1 
+na=2 
+na=3 
+na=4 
+na=5 
+nb=4 
+nb=3 
+nb=2 
+nb=1 
+
+Ncyl =
+
+     7
+
+na=1 
+na=2 
+na=3 
+na=4 
+na=5 
+nb=4 
+nb=3 
+nb=2 
+nb=1 
+
+Ncyl =
+
+     8
+
+na=1 
+na=2 
+na=3 
+na=4 
+na=5 
+nb=4 
+nb=3 
+nb=2 
+nb=1 
+
+Ncyl =
+
+     9
+
+na=1 
+na=2 
+na=3 
+na=4 
+na=5 
+nb=4 
+nb=3 
+nb=2 
+nb=1 
+
+Ncyl =
+
+    10
+
+na=1 
+na=2 
+na=3 
+na=4 
+na=5 
+nb=4 
+nb=3 
+nb=2 
+nb=1 
+
+Ncyl =
+
+    10
+
+</pre><h2 id="9">Solving Lu=R using MG (W-cycle)</h2><pre class="codeinput"><span class="keyword">if</span> (Wcycle==1 &amp;&amp; itype&lt;4 &amp;&amp; Nlvlmax&gt;3)
+   tsW=cputime;
+   <span class="keyword">for</span> Ncyl=1:Ncycle
+       Ncyl
+      [uout]=fine_to_coarse(uin,RHS,maxiter,invA,invB,A,B,a,b,c,nx,ny,itype,<span class="keyword">...</span>
+                            omg,Nlvlmax,1,uout,eps,epsnew);
+      [uout]=coarse_to_fine(Nlvlmax,uout,uoutnew,Nlvlmax-1);
+      uin{Nlvlmax-2}=uout{Nlvlmax-2};
+      [uout]=fine_to_coarse(uin,RHS,maxiter,invA,invB,A,B,a,b,c,nx,ny,itype,omg,<span class="keyword">...</span>
+                            Nlvlmax,Nlvlmax-2,uout,eps,epsnew);
+      [uout]=coarse_to_fine(Nlvlmax,uout,uoutnew,2);
+      uin{1}=uout{1};
+      <span class="comment">%residue for testing convergence</span>
+      error(Ncyl)=norm(residual(uout{1},RHS{1},a(1),b(1),c(1),nx(1),ny(1)));
+   <span class="keyword">end</span>
+   teW=cputime-tsW;
+<span class="keyword">end</span>
+</pre><h2 id="10">Analysis</h2><pre class="codeinput">figure(3)
+Lx=2*pi;Ly=2*pi;
+dx=Lx/(nx(1)-1);dy=Ly/(ny(1)-1);
+x=0:dx:2*pi;
+y=0:dy:2*pi;
+[X,Y]=meshgrid(x,y);
+surf(x,y,uout{1},<span class="string">'linestyle'</span>,<span class="string">'none'</span>)
+set(gca, <span class="string">'CameraPosition'</span>, [2*pi 2*pi 0.25]);
+xlabel(<span class="string">'$x$'</span>,<span class="string">'interpreter'</span>,<span class="string">'latex'</span>,<span class="string">'fontsize'</span>,16)
+ylabel(<span class="string">'$y$'</span>,<span class="string">'interpreter'</span>,<span class="string">'latex'</span>,<span class="string">'fontsize'</span>,16)
+title(<span class="string">'$u$ (Line GS)'</span>,<span class="string">'interpreter'</span>,<span class="string">'latex'</span>,<span class="string">'fontsize'</span>,16)
+set(gcf,<span class="string">'Color'</span>,<span class="string">'w'</span>)
+set(gca,<span class="string">'fontsize'</span>,16,<span class="string">'fontname'</span>,<span class="string">'times'</span>)
+colorbar
+colormap(flipud(gray))
+
+figure(1)
+semilogy(error);hold <span class="string">on</span>
+xlabel(<span class="string">'Number of cycles'</span>,<span class="string">'interpreter'</span>,<span class="string">'latex'</span>,<span class="string">'fontsize'</span>,16)
+ylabel(<span class="string">'$\epsilon =|\!|\nabla^2u-R|\!|$'</span>,<span class="string">'interpreter'</span>,<span class="string">'latex'</span>,<span class="string">'fontsize'</span>,16)
+title(<span class="string">'Point \ GS'</span>,<span class="string">'interpreter'</span>,<span class="string">'latex'</span>,<span class="string">'fontsize'</span>,16)
+set(gcf,<span class="string">'Color'</span>,<span class="string">'w'</span>)
+set(gca,<span class="string">'fontsize'</span>,16,<span class="string">'fontname'</span>,<span class="string">'times'</span>)
+</pre><img vspace="5" hspace="5" src="main_01.png" alt=""> <img vspace="5" hspace="5" src="main_02.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%%**************MULTIGIRD PROJECT******************
+%%*****SUBMITTED BY GHANESH NARASIMHAN*************
+%%*******NUMERICAL METHODS (FALL 2018)*************
+
+clear
+%% Multigrid parameters
+Nlvlmax=5;            %Number of multigrid levels
+Ncycle=50;           %Number of MG cycles
+%tot_iter=2500;       %total iterations=Ncycle*maxiter*Nlvlmax;
+maxiter=5;%tot_iter/(Nlvlmax*Ncycle);%Maximum iterations in iterative solver
+
+omg=1.00;            %SOR parameter
+Vcycle=1;            %Flag for V-Cycle
+Wcycle=0;            %Flag for W-Cycle
+
+        
+%Type of smoother
+itype=3;
+%
+%itype=1 Point Gauss-Seidel red black + SOR + MG
+%itype=2 Point Gauss-Seidel normal    + SOR + MG
+%itype=3 Line  Gauss-Seidel (ADI)     + SOR + MG
+%itype=4 Line  Gauss-Seidel (ADI)     + SOR + Non-MG
+%itype=5 Point Gauss-Seidel           + SOR + Non-MG
+
+%% Grid definition for each level
+Lx=2*pi;Ly=2*pi;
+Nx=257;Ny=257; 
+nx(1)=Nx;
+ny(1)=Ny;
+
+%Number of grid points at other levels
+for i=2:Nlvlmax
+    ny(i)=((ny(1)-1)/2^(i-1))+1;
+    nx(i)=((nx(1)-1)/2^(i-1))+1;
+end
+
+%% Initialise arrays on each level
+error(1:Ncycle)=0;
+for i=1:Nlvlmax
+    uin{i}(1:ny(i),1:nx(i))=0;
+    uout{i}(1:ny(i),1:nx(i))=0;
+    uoutnew{i}(1:ny(i),1:nx(i))=0;
+    eps{i}(1:ny(i),1:nx(i))=0;
+    epsnew{i}(1:ny(i),1:nx(i))=0;
+    RHS{i}(1:ny(i),1:nx(i))=0;
+end
+
+%% Initial condition (random noise+ boundary condition)
+for n=1:Nlvlmax
+  dx=Lx/(nx(n)-1);dy=Ly/(ny(n)-1);
+  x=0:dx:Lx;
+  y=0:dy:Ly;
+  if (n==1)
+   %uin{n}= -1 + (1+1)*rand(ny(1),nx(1));
+   u=load('init_cond.mat');
+   uin{n}(1:ny(n),1:nx(n))=u.u(1:ny(n),1:nx(n));
+   uin{n}(1:ny(n),1)=sin(4*y);
+   uin{n}(1:ny(n),nx(n))=0;
+   uin{n}(1,1:nx(n))=sin(4*x);
+   uin{n}(ny(n),1:nx(n))=0;
+  end   
+end
+
+%% Calculate co-efficients
+a(1:Nlvlmax)=0;b(1:Nlvlmax)=0;c(1:Nlvlmax)=0;
+for n=1:Nlvlmax
+    A{n}=0;B{n}=0;invA{n}=0;invB{n}=0;
+    [invA{n},invB{n},A{n},B{n},a(n),b(n),c(n)]=coeff(n,Nx,Ny,Lx,Ly);
+end
+%% Solving Lu=R using Non-MG
+if (itype>=4)
+  n=1;tol=1e-5;counternMG=0;
+  [uout{n},counternMG,tnonMG,errornMG]=NonMG(uin{n},RHS{n},invA{n},invB{n}...
+                                             ,a(n),b(n),c(n),Nx,Ny,itype,omg,tol);
+  semilogy(errornMG)
+end
+
+%% Solving Lu=R using MG (V-cycle)
+if (Vcycle==1 && itype<4)
+   tsV=cputime;
+   for Ncyl=1:Ncycle
+       Ncyl
+      [uout]=fine_to_coarse(uin,RHS,maxiter,invA,invB,A,B,a,b,c,nx,ny,itype,omg,Nlvlmax,1,uout,eps,epsnew);
+      [uout]=coarse_to_fine(Nlvlmax,uout,uoutnew,2);
+      uin{1}=uout{1};
+      %residue for testing convergence 
+      error(Ncyl)=norm(residual(uout{1},RHS{1},a(1),b(1),c(1),nx(1),ny(1)));
+      if (error(Ncyl)<1e-5)
+          Ncyl
+          teV=cputime-tsV;
+          break
+      end
+   end
+end
+
+%% Solving Lu=R using MG (W-cycle)
+if (Wcycle==1 && itype<4 && Nlvlmax>3)
+   tsW=cputime;
+   for Ncyl=1:Ncycle
+       Ncyl
+      [uout]=fine_to_coarse(uin,RHS,maxiter,invA,invB,A,B,a,b,c,nx,ny,itype,...
+                            omg,Nlvlmax,1,uout,eps,epsnew);
+      [uout]=coarse_to_fine(Nlvlmax,uout,uoutnew,Nlvlmax-1);
+      uin{Nlvlmax-2}=uout{Nlvlmax-2};
+      [uout]=fine_to_coarse(uin,RHS,maxiter,invA,invB,A,B,a,b,c,nx,ny,itype,omg,...
+                            Nlvlmax,Nlvlmax-2,uout,eps,epsnew);
+      [uout]=coarse_to_fine(Nlvlmax,uout,uoutnew,2);
+      uin{1}=uout{1};    
+      %residue for testing convergence 
+      error(Ncyl)=norm(residual(uout{1},RHS{1},a(1),b(1),c(1),nx(1),ny(1)));
+   end
+   teW=cputime-tsW;
+end
+
+
+%% Analysis
+figure(3)
+Lx=2*pi;Ly=2*pi;
+dx=Lx/(nx(1)-1);dy=Ly/(ny(1)-1);
+x=0:dx:2*pi;
+y=0:dy:2*pi;
+[X,Y]=meshgrid(x,y);
+surf(x,y,uout{1},'linestyle','none')
+set(gca, 'CameraPosition', [2*pi 2*pi 0.25]);
+xlabel('$x$','interpreter','latex','fontsize',16)
+ylabel('$y$','interpreter','latex','fontsize',16)
+title('$u$ (Line GS)','interpreter','latex','fontsize',16)
+set(gcf,'Color','w')
+set(gca,'fontsize',16,'fontname','times')
+colorbar
+colormap(flipud(gray))
+
+figure(1)
+semilogy(error);hold on
+xlabel('Number of cycles','interpreter','latex','fontsize',16)
+ylabel('$\epsilon =|\!|\nabla^2u-R|\!|$','interpreter','latex','fontsize',16)
+title('Point \ GS','interpreter','latex','fontsize',16)
+set(gcf,'Color','w')
+set(gca,'fontsize',16,'fontname','times')
+
+
+##### SOURCE END #####
+--></body></html>

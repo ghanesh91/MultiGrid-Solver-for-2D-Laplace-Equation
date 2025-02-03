@@ -1,0 +1,36 @@
+
+% This LaTeX was auto-generated from MATLAB code.
+% To make changes, update the MATLAB code and republish this document.
+
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{color}
+
+\sloppy
+\definecolor{lightgray}{gray}{0.5}
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+    
+    \begin{verbatim}
+function [epsnew]=restriction(eps,Nx,Ny)
+Nxnew=(Nx-1)/2+1;
+Nynew=(Ny-1)/2+1;
+
+epsnew(1:Nynew,1:Nxnew)=0;
+%Perform restriction by copying every alternate points in the grid
+epsnew(1:Nynew,1:Nxnew)=eps(1:2:Ny,1:2:Nx);
+end
+\end{verbatim}
+
+        \color{lightgray} \begin{verbatim}Not enough input arguments.
+
+Error in restriction (line 2)
+Nxnew=(Nx-1)/2+1;
+\end{verbatim} \color{black}
+    
+
+
+\end{document}
+    
